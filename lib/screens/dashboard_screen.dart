@@ -89,6 +89,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onSelected: (value) async {
                         if (value == 'logout') {
                           await authService.logout();
+                          Navigator.of(
+                            context,
+                          ).pushNamedAndRemoveUntil('/login', (r) => false);
                         }
                       },
                       itemBuilder: (context) => [
@@ -117,7 +120,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ] else
                     IconButton(
                       icon: Icon(Icons.logout),
-                      onPressed: () async => await authService.logout(),
+                      onPressed: () async {
+                        await authService.logout();
+                        Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil('/login', (r) => false);
+                      },
                     ),
                 ],
               );

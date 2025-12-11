@@ -10,6 +10,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _username = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _roleId = TextEditingController();
 
   bool loading = false;
 
@@ -34,6 +35,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               obscureText: true,
               decoration: InputDecoration(labelText: "Senha"),
             ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _roleId,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: "Role ID (numérico)"),
+            ),
             SizedBox(height: 20),
             loading
                 ? CircularProgressIndicator()
@@ -45,7 +52,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         username: _username.text.trim(),
                         email: _email.text.trim(),
                         password: _password.text.trim(),
+                        roleId: int.parse(_roleId.text.trim()),
                       );
+
+                      if (!mounted) return;
 
                       setState(() => loading = false);
 
@@ -66,5 +76,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _username.dispose();
+    _email.dispose();
+    _password.dispose();
+    _roleId.dispose();
+    super.dispose();
   }
 }

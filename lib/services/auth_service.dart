@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../config/config.dart';
+import 'dart:convert';
 
 // Strategy Pattern: Define diferentes estratégias de autenticação
 // - AuthStrategy: Interface abstrata para diferentes métodos de login
@@ -227,6 +228,33 @@ class AuthService extends ChangeNotifier {
       if (data['access_token'] != null) {
         // Se resposta contém token (login OK)
         _token = data['access_token']; // Armazena token no estado
+        // Se o backend já retornou dados do usuário no payload de login, utilize-os
+        try {
+          // Alguns backends encapsulam a resposta em um objeto `data`.
+          Map<String, dynamic> payload = {};
+          if (data is Map<String, dynamic>) {
+            payload = Map<String, dynamic>.from(data);
+            if (payload['data'] != null && payload['data'] is Map) {
+              payload = Map<String, dynamic>.from(payload['data']);
+            }
+          }
+
+          if (payload['user'] != null &&
+              payload['user'] is Map<String, dynamic>) {
+            _currentUser = User.fromJson(
+              Map<String, dynamic>.from(payload['user']),
+            );
+          } else if (payload['profile'] != null &&
+              payload['profile'] is Map<String, dynamic>) {
+            _currentUser = User.fromJson(
+              Map<String, dynamic>.from(payload['profile']),
+            );
+          }
+        } catch (e) {
+          debugPrint(
+            'Falha ao popular currentUser a partir do payload de login: $e',
+          );
+        }
         await _saveAuth(); // Persiste token no SharedPreferences
         await _fetchCurrentUser(); // Busca dados completos do usuário
         notifyListeners(); // Observer Pattern: Notifica widgets sobre mudança de autenticação
@@ -297,8 +325,93 @@ class AuthService extends ChangeNotifier {
 
   Future<void> _tryFetchUserFromAPI() async {
     try {
-      // Para buscar usuário atual, usaremos uma instância externa do ApiService
-      // Por enquanto, deixaremos como null até implementar endpoint /me
+      // Tenta extrair informações do token (se for JWT) para popular currentUser
+      if (_token == null) {
+        _currentUser = null;
+        return;
+      }
+
+      final parts = _token!.split('.');
+      if (parts.length != 3) {
+        // Não é um JWT: não conseguimos extrair payload
+        _currentUser = null;
+        return;
+      }
+
+      final payload = parts[1];
+      // Ajuste do padding Base64Url
+      String normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final Map<String, dynamic> map = jsonDecode(decoded);
+
+      // Procurar claims comuns para role
+      int? roleId;
+      String? roleName;
+
+      if (map.containsKey('role_id')) {
+        roleId = (map['role_id'] is int)
+            ? map['role_id']
+            : int.tryParse('${map['role_id']}');
+      }
+      if (map.containsKey('role')) {
+        final r = map['role'];
+        if (r is Map && r.containsKey('id')) {
+          roleId = (r['id'] is int) ? r['id'] : int.tryParse('${r['id']}');
+        }
+        if (r is String) roleName = r;
+      }
+      if (map.containsKey('roles')) {
+        // às vezes vem como lista
+        final r = map['roles'];
+        if (r is List && r.isNotEmpty) {
+          final first = r.first;
+          if (first is Map && first.containsKey('id')) {
+            roleId = (first['id'] is int)
+                ? first['id']
+                : int.tryParse('${first['id']}');
+          }
+          if (first is String) roleName = first;
+        }
+      }
+
+      if (map.containsKey('role_name')) roleName = '${map['role_name']}';
+      if (map.containsKey('email')) {
+        // Monta um usuário mínimo com as claims encontradas
+        final email = '${map['email']}';
+        final role = Role(
+          id: roleId ?? 2,
+          name: roleName ?? (roleId == 1 ? 'admin' : 'user'),
+        );
+        _currentUser = User(
+          id: map['sub'] is int
+              ? map['sub']
+              : (map['user_id'] is int ? map['user_id'] : 0),
+          email: email,
+          fullName: null,
+          profileImageUrl: null,
+          profileImageBase64: null,
+          role: role,
+        );
+        return;
+      }
+
+      // Se não encontramos email, mas detectamos roleId/roleName, criamos usuário mínimo
+      if (roleId != null || roleName != null) {
+        final role = Role(
+          id: roleId ?? 2,
+          name: roleName ?? (roleId == 1 ? 'admin' : 'user'),
+        );
+        _currentUser = User(
+          id: 0,
+          email: 'unknown',
+          fullName: null,
+          profileImageUrl: null,
+          profileImageBase64: null,
+          role: role,
+        );
+        return;
+      }
+
       _currentUser = null;
     } catch (e) {
       debugPrint('Erro ao buscar usuário da API: $e');

@@ -1,16 +1,20 @@
 import '../models/models.dart';
+import '../models/posts.dart';
 import 'auth_service.dart';
 import 'user_api_service.dart';
 import 'role_api_service.dart';
+import 'posts_api_service.dart';
 
 class ApiService {
   final AuthService _authService;
   late UserApiService _userApiService;
   late RoleApiService _roleApiService;
+  late PostsService _postsApiService;
 
   ApiService(this._authService) {
     _userApiService = UserApiService(_authService);
     _roleApiService = RoleApiService(_authService);
+    _postsApiService = PostsService(_authService);
   }
 
   // Métodos para Usuários (delegação para UserApiService)
@@ -32,4 +36,7 @@ class ApiService {
       _roleApiService.updateRole(id, role);
 
   Future<bool> deleteRole(int id) => _roleApiService.deleteRole(id);
+
+  Future<List<Posts>> getPosts({String? city}) =>
+      _postsApiService.getPosts(city: city);
 }

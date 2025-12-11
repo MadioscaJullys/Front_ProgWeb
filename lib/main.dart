@@ -4,7 +4,6 @@ import 'services/auth_service.dart';
 import 'services/user_service.dart';
 import 'services/api_service.dart';
 import 'services/api_facade.dart';
-import 'services/register_service.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -49,7 +48,9 @@ class MyApp extends StatelessWidget {
         ProxyProvider<AuthService, ApiService>(
           update: (context, auth, previous) => previous ?? ApiService(auth),
         ),
-        Provider<PostsApiService>(create: (_) => PostsApiService()),
+        ProxyProvider<AuthService, PostsService>(
+          update: (context, auth, previous) => previous ?? PostsService(auth),
+        ),
         ChangeNotifierProxyProvider2<AuthService, UserService, ApiFacade>(
           // Facade Pattern: Provider para facade
           create: (context) => ApiFacade(
@@ -57,22 +58,27 @@ class MyApp extends StatelessWidget {
             Provider.of<AuthService>(
               context,
               listen: false,
-            ), // Injeta AuthService na facade
+            ), // Injeta AuthService
             Provider.of<UserService>(
               context,
               listen: false,
-            ), // Injeta UserService na facade
+            ), // Injeta UserService
+            Provider.of<PostsService>(
+              context,
+              listen: false,
+            ), // Injeta PostsApiService
           ),
           update: (context, auth, user, previous) =>
               previous ??
               ApiFacade(
                 auth,
                 user,
+                Provider.of<PostsService>(context, listen: false),
               ), // Atualiza facade quando dependências mudam
         ),
       ],
       child: MaterialApp(
-        title: 'Admin App',
+        title: 'API',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -103,7 +109,7 @@ class MyApp extends StatelessWidget {
           ),
           "/feed": (context) => FeedScreen(),
           "/create-post": (context) => CreatePostScreen(),
-          "/register": (context) => RegisterScreen()
+          "/register": (context) => RegisterScreen(),
         },
 
         home: AuthWrapper(),
@@ -142,26 +148,21 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     if (_isInitializing) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Carregando...'),
-            ],
-          ),
-        ),
-      );
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Consumer<ApiFacade>(
-      builder: (context, apiFacade, child) {
-        if (apiFacade.isAuthenticated) {
-          return DashboardScreen();
-        } else {
+    return Consumer<AuthService>(
+      builder: (context, auth, child) {
+        if (!auth.isAuthenticated) {
           return LoginScreen();
+        }
+
+        // Aqui decidimos a tela conforme a role
+        final roleName = auth.currentUser?.role.name;
+        if (roleName == "admin") {
+          return DashboardScreen(); // tela admin
+        } else {
+          return FeedScreen(); // criar essa tela / feed
         }
       },
     );

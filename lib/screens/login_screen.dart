@@ -81,12 +81,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             : Text('Entrar'),
                       ),
                     ),
-                    
+
                     SizedBox(height: 12),
 
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/register');  
+                        Navigator.pushNamed(context, '/register');
                       },
                       child: Text('Criar conta'),
                     ),
@@ -126,6 +126,17 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Colors.red,
         ),
       );
+      return;
+    }
+
+    // Navegar conforme role após login bem-sucedido
+    final roleId = authService.currentUser?.role.id;
+    final roleName = authService.currentUser?.role.name;
+    if (!mounted) return;
+    if (roleId == 1 || roleName == 'admin') {
+      Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (r) => false);
+    } else {
+      Navigator.of(context).pushNamedAndRemoveUntil('/feed', (r) => false);
     }
   }
 
