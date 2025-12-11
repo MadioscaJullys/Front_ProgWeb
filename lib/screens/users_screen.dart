@@ -238,10 +238,14 @@ class _UserDialogState extends State<UserDialog> {
     );
 
     if (widget.user != null) {
-      _selectedRole = widget.roles.firstWhere(
-        (role) => role.id == widget.user!.role.id,
-        orElse: () => widget.roles.first,
-      );
+      try {
+        _selectedRole = widget.roles.firstWhere(
+          (role) => role.id == widget.user!.role.id,
+        );
+      } catch (_) {
+        // Se não encontrarmos a role entre as roles carregadas, escolha a primeira (se houver)
+        _selectedRole = widget.roles.isNotEmpty ? widget.roles.first : null;
+      }
     } else {
       _selectedRole = widget.roles.isNotEmpty ? widget.roles.first : null;
     }

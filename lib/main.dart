@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
           create: (_) => UserService(),
         ), // Provider para UserService
         ProxyProvider<AuthService, ApiService>(
-          update: (context, auth, previous) => previous ?? ApiService(auth),
+          update: (context, auth, previous) => ApiService(auth),
         ),
         ProxyProvider<AuthService, PostsService>(
           update: (context, auth, previous) => previous ?? PostsService(auth),
