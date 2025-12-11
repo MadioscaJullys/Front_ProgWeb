@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../widgets/user_avatar.dart';
-import 'user_detail_screen.dart';
+// import 'user_detail_screen.dart'; // now using named route '/user-detail'
 
 class UsersScreen extends StatefulWidget {
   final ApiService apiService;
@@ -37,6 +37,8 @@ class _UsersScreenState extends State<UsersScreen> {
         widget.apiService.getRoles(),
       ]);
 
+      if (!mounted) return;
+
       setState(() {
         users = loadedUsers as List<User>;
         roles = loadedRoles as List<Role>;
@@ -46,6 +48,7 @@ class _UsersScreenState extends State<UsersScreen> {
       setState(() {
         isLoading = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao carregar dados: $e')));
@@ -128,9 +131,11 @@ class _UsersScreenState extends State<UsersScreen> {
   }
 
   Future<void> _viewUserDetails(User user) async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => UserDetailScreen(user: user)),
-    );
+    final result = await Navigator.of(
+      context,
+    ).pushNamed('/user-detail', arguments: user);
+
+    if (!mounted) return;
 
     // Se o usuário clicou em editar na tela de detalhes
     if (result == 'edit') {
@@ -390,6 +395,8 @@ class _UserDialogState extends State<UserDialog> {
               mimeType == 'image/heif' ||
               mimeType == 'image/heic') {
             // Simula conversão do backend: informa que seria convertido para JPEG
+            if (!mounted) return;
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Column(
@@ -417,6 +424,8 @@ class _UserDialogState extends State<UserDialog> {
           String base64String = base64Encode(bytes);
           String dataUrl = 'data:$mimeType;base64,$base64String';
 
+          if (!mounted) return;
+
           setState(() {
             _selectedImageBase64 = dataUrl;
             _selectedImageName = file.name;
@@ -424,6 +433,7 @@ class _UserDialogState extends State<UserDialog> {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao selecionar imagem: $e')));

@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
 import '../config/config.dart';
 
 abstract class BaseApiService {
   // Usa a configuração centralizada
   static String get baseUrl => Config.apiUrl;
-  
+
   final AuthService authService;
   late Dio dio;
 
@@ -31,8 +32,8 @@ abstract class BaseApiService {
           handler.next(options);
         },
         onError: (error, handler) {
-          print('API Error: ${error.message}');
-          print('Response: ${error.response?.data}');
+          debugPrint('API Error: ${error.message}');
+          debugPrint('Response: ${error.response?.data}');
           handler.next(error);
         },
       ),

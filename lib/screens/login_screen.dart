@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}) : super(key: key);
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -101,6 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
       _emailController.text,
       _passwordController.text,
     );
+
+    if (!mounted) return;
 
     setState(() {
       _isLoading = false;

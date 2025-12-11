@@ -28,6 +28,8 @@ class _RolesScreenState extends State<RolesScreen> {
 
     try {
       final loadedRoles = await widget.apiService.getRoles();
+      if (!mounted) return;
+
       setState(() {
         roles = loadedRoles;
         isLoading = false;
@@ -36,6 +38,7 @@ class _RolesScreenState extends State<RolesScreen> {
       setState(() {
         isLoading = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao carregar roles: $e')));
@@ -150,10 +153,12 @@ class _RolesScreenState extends State<RolesScreen> {
       try {
         await widget.apiService.deleteRole(role.id);
         _loadRoles();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Role "${role.name}" excluída com sucesso')),
         );
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Erro ao excluir role: $e')));

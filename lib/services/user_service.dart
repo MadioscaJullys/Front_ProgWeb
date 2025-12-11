@@ -38,7 +38,7 @@ class UserService extends ChangeNotifier {
       }
       return [];
     } catch (e) {
-      print('Erro ao buscar usuários: $e');
+      debugPrint('Erro ao buscar usuários: $e');
       return [];
     }
   }
@@ -55,7 +55,7 @@ class UserService extends ChangeNotifier {
       }
       return null;
     } catch (e) {
-      print('Erro ao buscar usuário: $e');
+      debugPrint('Erro ao buscar usuário: $e');
       return null;
     }
   }
@@ -70,12 +70,16 @@ class UserService extends ChangeNotifier {
 
       return response.statusCode == 201;
     } catch (e) {
-      print('Erro ao criar usuário: $e');
+      debugPrint('Erro ao criar usuário: $e');
       return false;
     }
   }
 
-  Future<bool> updateUser(String token, int userId, UserUpdate userUpdate) async {
+  Future<bool> updateUser(
+    String token,
+    int userId,
+    UserUpdate userUpdate,
+  ) async {
     try {
       final response = await _dio.put(
         '/users/$userId',
@@ -85,7 +89,7 @@ class UserService extends ChangeNotifier {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Erro ao atualizar usuário: $e');
+      debugPrint('Erro ao atualizar usuário: $e');
       return false;
     }
   }
@@ -99,7 +103,7 @@ class UserService extends ChangeNotifier {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Erro ao deletar usuário: $e');
+      debugPrint('Erro ao deletar usuário: $e');
       return false;
     }
   }

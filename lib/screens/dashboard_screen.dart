@@ -7,6 +7,8 @@ import 'users_screen.dart';
 import 'roles_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({Key? key}) : super(key: key);
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -181,6 +183,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
     try {
       final users = await widget.apiService.getUsers();
       final roles = await widget.apiService.getRoles();
+      if (!mounted) return;
 
       setState(() {
         usersCount = users.length;
@@ -188,7 +191,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
         isLoading = false;
       });
     } catch (e) {
-      print('Erro ao carregar contadores: $e');
+      debugPrint('Erro ao carregar contadores: $e');
       setState(() {
         isLoading = false;
       });
