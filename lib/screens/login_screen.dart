@@ -81,6 +81,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             : Text('Entrar'),
                       ),
                     ),
+                    
+                    SizedBox(height: 12),
+
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/register');  
+                      },
+                      child: Text('Criar conta'),
+                    ),
                   ],
                 ),
               ),

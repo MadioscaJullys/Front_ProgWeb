@@ -4,6 +4,8 @@ import 'services/auth_service.dart';
 import 'services/user_service.dart';
 import 'services/api_service.dart';
 import 'services/api_facade.dart';
+import 'services/register_service.dart';
+import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/users_screen.dart';
@@ -102,6 +104,7 @@ class MyApp extends StatelessWidget {
           ),
           "/feed": (context) => FeedScreen(),
           "/create-post": (context) => CreatePostScreen(),
+          "/register": (context) => RegisterScreen()
         },
 
         // 🔥 Tela inicial lógica
