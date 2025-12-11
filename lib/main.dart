@@ -80,7 +80,6 @@ class MyApp extends StatelessWidget {
 
         debugShowCheckedModeBanner: false,
 
-        // 🔥 SUAS ROTAS FICAM AQUI
         routes: {
           '/login': (context) => LoginScreen(),
           '/dashboard': (context) => DashboardScreen(),
@@ -107,7 +106,6 @@ class MyApp extends StatelessWidget {
           "/register": (context) => RegisterScreen()
         },
 
-        // 🔥 Tela inicial lógica
         home: AuthWrapper(),
       ),
     );
