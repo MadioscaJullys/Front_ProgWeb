@@ -20,8 +20,6 @@ class Posts {
   });
 
   factory Posts.fromJson(Map<String, dynamic> json) {
-    // Some backends send `image_url`, others `image_path`.
-    // Normalize values and ensure non-nullable fields get safe defaults.
     String safeString(dynamic v) {
       if (v == null) return '';
       return v.toString();
@@ -41,14 +39,30 @@ class Posts {
     );
 
     String resolvedImageUrl = '';
+
+    // 1) Se servidor retornou um campo de URL/arquivo, resolvemos para uma URL absoluta
     if (rawImage.isNotEmpty) {
       if (rawImage.startsWith('http')) {
         resolvedImageUrl = rawImage;
       } else {
         var path = rawImage.replaceAll('\\', '/');
         if (path.startsWith('/')) path = path.substring(1);
-        final base = Config.apiUrl.replaceAll(RegExp(r"/+"), "");
-        resolvedImageUrl = '$base/$path';
+
+        var baseFinal = Config.apiUrl;
+        while (baseFinal.endsWith('/')) {
+          baseFinal = baseFinal.substring(0, baseFinal.length - 1);
+        }
+
+        resolvedImageUrl = '$baseFinal/$path';
+      }
+    }
+
+    // 2) Fallback: alguns endpoints fornecem um data URI/base64 no campo `image_data_url`
+    //    — use-o diretamente para exibir a imagem no cliente (especialmente na web).
+    if (resolvedImageUrl.isEmpty) {
+      final imgData = json['image_data_url'] ?? json['imageDataUrl'];
+      if (imgData != null && imgData is String && imgData.startsWith('data:')) {
+        resolvedImageUrl = imgData;
       }
     }
 

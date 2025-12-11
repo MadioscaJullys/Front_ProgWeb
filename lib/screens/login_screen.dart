@@ -129,15 +129,36 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // Navegar conforme role após login bem-sucedido
-    final roleId = authService.currentUser?.role.id;
-    final roleName = authService.currentUser?.role.name;
+    // Navegar conforme role após login bem-sucedido.
+    // Usa getters públicos que extraem role do currentUser ou do token JWT.
+    final roleId = authService.roleId;
+    final roleName = authService.roleName;
     if (!mounted) return;
-    if (roleId == 1 || roleName == 'admin') {
+    debugPrint(
+      'Login resolved roleId=$roleId roleName=$roleName currentUser=${authService.currentUser}',
+    );
+    // Tratamento tolerante de roles:
+    // - roleId pode ser numérico (1=admin, 2=user)
+    // - roleName pode vir em formas diferentes ("admin", "adm", etc.)
+    final roleNameLower = roleName?.toLowerCase();
+
+    if (roleId == 1 ||
+        (roleNameLower != null && roleNameLower.contains('adm'))) {
       Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (r) => false);
-    } else {
-      Navigator.of(context).pushNamedAndRemoveUntil('/feed', (r) => false);
+      return;
     }
+
+    // Usuário comum: roleId == 2 ou roleName contém 'user'/'usuario'
+    if (roleId == 2 ||
+        (roleNameLower != null &&
+            (roleNameLower.contains('user') ||
+                roleNameLower.contains('usuario')))) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/feed', (r) => false);
+      return;
+    }
+
+    // Fallback: se não conseguimos determinar a role, enviar para feed
+    Navigator.of(context).pushNamedAndRemoveUntil('/feed', (r) => false);
   }
 
   @override

@@ -155,6 +155,72 @@ class AuthService extends ChangeNotifier {
   User? get currentUser => _currentUser;
   String? get token => _token;
 
+  /// retorna role id se disponível, tenta extrair do token caso currentUser seja nulo
+  int? get roleId {
+    if (_currentUser?.role != null) return _currentUser!.role.id;
+    try {
+      if (_token == null) return null;
+      final parts = _token!.split('.');
+      if (parts.length != 3) return null;
+      final payload = parts[1];
+      String normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final Map<String, dynamic> map = jsonDecode(decoded);
+      if (map.containsKey('role_id')) {
+        return (map['role_id'] is int)
+            ? map['role_id']
+            : int.tryParse('${map['role_id']}');
+      }
+      if (map.containsKey('role')) {
+        final r = map['role'];
+        if (r is Map && r.containsKey('id')) {
+          return (r['id'] is int) ? r['id'] : int.tryParse('${r['id']}');
+        }
+      }
+      if (map.containsKey('roles')) {
+        final r = map['roles'];
+        if (r is List && r.isNotEmpty) {
+          final first = r.first;
+          if (first is Map && first.containsKey('id')) {
+            return (first['id'] is int)
+                ? first['id']
+                : int.tryParse('${first['id']}');
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String? get roleName {
+    if (_currentUser?.role != null) return _currentUser!.role.name;
+    try {
+      if (_token == null) return null;
+      final parts = _token!.split('.');
+      if (parts.length != 3) return null;
+      final payload = parts[1];
+      String normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final Map<String, dynamic> map = jsonDecode(decoded);
+      if (map.containsKey('role_name')) return '${map['role_name']}';
+      if (map.containsKey('role')) {
+        final r = map['role'];
+        if (r is String) return r;
+        if (r is Map && r.containsKey('name')) return '${r['name']}';
+      }
+      if (map.containsKey('roles')) {
+        final r = map['roles'];
+        if (r is List && r.isNotEmpty) {
+          final first = r.first;
+          if (first is String) return first;
+          if (first is Map && first.containsKey('name'))
+            return '${first['name']}';
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /// Carrega dados de autenticação salvos no localStorage
   Future<void> _loadSavedAuth() async {
     try {

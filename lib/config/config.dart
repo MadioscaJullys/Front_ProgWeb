@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 class Config {
   // URLs da API
   static const String productionApiUrl =
-      'http://localhost:8000';
-  static const String developmentApiUrl = 'http://localhost:8000';
+      'https://back-progwebiii.onrender.com';
+  static const String developmentApiUrl = 'https://back-progwebiii.onrender.com';
 
   // URL atual baseada na URL do navegador
   static String get apiUrl {

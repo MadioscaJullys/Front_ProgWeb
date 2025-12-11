@@ -19,6 +19,20 @@ class PostsService {
       token: token,
     );
 
+    // Diagnostic: print raw items and resolved image URLs to help debug missing images
+    try {
+      final list = data as List;
+      for (final item in list) {
+        try {
+          debugPrint('Post raw json: $item');
+          final post = Posts.fromJson(Map<String, dynamic>.from(item));
+          debugPrint('Resolved image URL: ${post.imageUrl}');
+        } catch (e) {
+          debugPrint('Error parsing post item for debug: $e');
+        }
+      }
+    } catch (_) {}
+
     return (data as List).map((json) => Posts.fromJson(json)).toList();
   }
 

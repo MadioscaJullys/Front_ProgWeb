@@ -27,25 +27,29 @@ class _FeedScreenState extends State<FeedScreen> {
   Future<void> _loadPosts() async {
     if (!mounted) return;
     final api = Provider.of<ApiFacade>(context, listen: false);
-
     if (mounted) setState(() => isLoading = true);
 
     try {
-      final data = await api.getPosts(city: selectedCity);
-
-      // Build list of distinct cities from posts (Posts model)
+      // 1) Buscar todos os posts (sem filtro) apenas para construir a lista de cidades
+      final allPosts = await api.getPosts();
       final citySet = <String>{};
-      for (final Posts p in data) {
+      for (final Posts p in allPosts) {
         try {
           final c = p.city;
           if (c.trim().isNotEmpty) citySet.add(c);
         } catch (_) {}
       }
 
+      // 2) Buscar os posts aplicando o filtro (se houver)
+      final data = (selectedCity == null)
+          ? allPosts
+          : await api.getPosts(city: selectedCity);
+
       if (!mounted) return;
       setState(() {
         posts = List<Posts>.from(data);
         cities = citySet.toList()..sort();
+        // if the selected city is no longer present in allCities, clear it
         if (selectedCity != null && !cities.contains(selectedCity))
           selectedCity = null;
       });
@@ -99,7 +103,7 @@ class _FeedScreenState extends State<FeedScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<String>(
+                  child: DropdownButtonFormField<String?>(
                     decoration: InputDecoration(
                       labelText: "Filtrar por cidade",
                       filled: true,
@@ -107,9 +111,16 @@ class _FeedScreenState extends State<FeedScreen> {
                       border: OutlineInputBorder(),
                     ),
                     value: selectedCity,
-                    items: cities
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                        .toList(),
+                    items: [
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Todas'),
+                      ),
+                      ...cities.map(
+                        (c) =>
+                            DropdownMenuItem<String?>(value: c, child: Text(c)),
+                      ),
+                    ],
                     onChanged: (value) {
                       setState(() => selectedCity = value);
                       _loadPosts();
@@ -156,29 +167,45 @@ class _FeedScreenState extends State<FeedScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // FOTO DO POST
+                            // FOTO DO POST (mostra a imagem inteira com largura limitada)
                             if (post.imageUrl.isNotEmpty)
                               ClipRRect(
                                 borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(12),
                                 ),
-                                child: Image.network(
-                                  post.imageUrl,
-                                  height: 220,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stack) =>
-                                      Container(
-                                        height: 220,
-                                        width: double.infinity,
+                                child: LayoutBuilder(
+                                  builder: (ctx, constraints) {
+                                    final maxWidth = constraints.maxWidth;
+                                    final imageWidth = maxWidth > 400
+                                        ? 400.0
+                                        : maxWidth;
+                                    return Center(
+                                      child: Container(
+                                        width: imageWidth,
+                                        height: 200,
                                         color: Colors.grey[200],
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.broken_image,
-                                          size: 48,
-                                          color: Colors.grey,
+                                        child: Image.network(
+                                          post.imageUrl,
+                                          width: imageWidth,
+                                          height: 200,
+                                          fit: BoxFit.contain,
+                                          errorBuilder:
+                                              (context, error, stack) =>
+                                                  Container(
+                                                    height: 200,
+                                                    width: imageWidth,
+                                                    color: Colors.grey[200],
+                                                    alignment: Alignment.center,
+                                                    child: Icon(
+                                                      Icons.broken_image,
+                                                      size: 48,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
                                         ),
                                       ),
+                                    );
+                                  },
                                 ),
                               ),
 
@@ -187,17 +214,7 @@ class _FeedScreenState extends State<FeedScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    post.title.isNotEmpty
-                                        ? post.title
-                                        : "Post sem título",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green.shade800,
-                                    ),
-                                  ),
-                                  SizedBox(height: 6),
+                                  // Removido título (evita duplicar a descrição)
                                   Text(
                                     post.description.isNotEmpty
                                         ? post.description
