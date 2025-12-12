@@ -48,7 +48,25 @@ class _UsersScreenState extends State<UsersScreen> {
       setState(() {
         isLoading = false;
       });
+
       if (!mounted) return;
+
+      final msg = e.toString();
+      debugPrint('Erro ao carregar usuários/roles: $msg');
+
+      if (msg.contains('HTTP 403')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Acesso negado (403): seu usuário não tem permissão para gerenciar usuários.',
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 6),
+          ),
+        );
+        return;
+      }
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao carregar dados: $e')));

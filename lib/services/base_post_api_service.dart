@@ -8,13 +8,30 @@ class BasePostApiService {
   final String baseUrl = Config.apiUrl;
 
   Future<dynamic> get(String endpoint, {String? token}) async {
-    final response = await http.get(
-      Uri.parse("$baseUrl$endpoint"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+    final uri = Uri.parse("$baseUrl$endpoint");
+
+    // Diagnostic logging
+    try {
+      debugPrint('--> GET $uri');
+      final headerPreview = StringBuffer();
+      if (token != null) {
+        headerPreview.write('Authorization: Bearer <present>, ');
+      } else {
+        headerPreview.write('Authorization: <omitted>, ');
+      }
+      headerPreview.write('Content-Type: application/json');
+      debugPrint('Headers: {$headerPreview}');
+    } catch (_) {}
+
+    final headers = <String, String>{"Content-Type": "application/json"};
+    if (token != null) headers["Authorization"] = "Bearer $token";
+
+    final response = await http.get(uri, headers: headers);
+
+    try {
+      debugPrint('<-- GET ${response.statusCode} $uri');
+      debugPrint('Response body: ${response.body}');
+    } catch (_) {}
 
     return _processResponse(response);
   }

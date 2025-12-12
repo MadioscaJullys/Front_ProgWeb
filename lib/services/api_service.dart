@@ -37,6 +37,6 @@ class ApiService {
 
   Future<bool> deleteRole(int id) => _roleApiService.deleteRole(id);
 
-  Future<List<Posts>> getPosts({String? city}) =>
-      _postsApiService.getPosts(city: city);
+  Future<List<Posts>> getPosts({String? city, String? query}) =>
+      _postsApiService.getPosts(city: city, query: query);
 }

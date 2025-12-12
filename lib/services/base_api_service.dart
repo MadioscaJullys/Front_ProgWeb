@@ -29,11 +29,26 @@ abstract class BaseApiService {
           }
           options.headers['Content-Type'] = 'application/json';
           options.headers['Accept'] = 'application/json';
+          // Debug: log outgoing request (helpful to debug 401/403)
+          debugPrint('--> ${options.method.toUpperCase()} ${options.uri}');
+          debugPrint('Headers: ${options.headers}');
+          if (options.data != null) debugPrint('Request body: ${options.data}');
           handler.next(options);
         },
         onError: (error, handler) {
           debugPrint('API Error: ${error.message}');
-          debugPrint('Response: ${error.response?.data}');
+          debugPrint(
+            'Request that failed: ${error.requestOptions.method} ${error.requestOptions.uri}',
+          );
+          debugPrint('Request headers: ${error.requestOptions.headers}');
+          debugPrint('Response status: ${error.response?.statusCode}');
+          debugPrint('Response data: ${error.response?.data}');
+
+          if (error.response?.statusCode == 403) {
+            debugPrint(
+              'Received 403 Forbidden — check backend permissions and the role/claims in the token.',
+            );
+          }
           handler.next(error);
         },
       ),

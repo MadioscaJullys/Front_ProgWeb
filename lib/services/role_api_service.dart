@@ -16,7 +16,9 @@ class RoleApiService extends BaseApiService {
       throw Exception('Falha ao carregar roles');
     } catch (e) {
       if (e is DioException) {
-        throw Exception('Erro: ${e.message}');
+        final status = e.response?.statusCode;
+        final body = e.response?.data;
+        throw Exception('HTTP ${status ?? '??'}: ${body ?? e.message}');
       }
       throw Exception('Erro: $e');
     }
@@ -32,7 +34,9 @@ class RoleApiService extends BaseApiService {
       throw Exception('Falha ao criar role');
     } catch (e) {
       if (e is DioException) {
-        throw Exception('Erro: ${e.message}');
+        final status = e.response?.statusCode;
+        final body = e.response?.data;
+        throw Exception('HTTP ${status ?? '??'}: ${body ?? e.message}');
       }
       throw Exception('Erro: $e');
     }
@@ -48,7 +52,9 @@ class RoleApiService extends BaseApiService {
       throw Exception('Falha ao atualizar role');
     } catch (e) {
       if (e is DioException) {
-        throw Exception('Erro: ${e.message}');
+        final status = e.response?.statusCode;
+        final body = e.response?.data;
+        throw Exception('HTTP ${status ?? '??'}: ${body ?? e.message}');
       }
       throw Exception('Erro: $e');
     }
@@ -60,7 +66,9 @@ class RoleApiService extends BaseApiService {
       return response.statusCode == 200;
     } catch (e) {
       if (e is DioException) {
-        throw Exception('Erro: ${e.message}');
+        final status = e.response?.statusCode;
+        final body = e.response?.data;
+        throw Exception('HTTP ${status ?? '??'}: ${body ?? e.message}');
       }
       throw Exception('Erro: $e');
     }

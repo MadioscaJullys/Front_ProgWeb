@@ -11,13 +11,21 @@ class PostsService {
 
   PostsService(this.authService);
 
-  Future<List<Posts>> getPosts({String? city}) async {
+  Future<List<Posts>> getPosts({String? city, String? query}) async {
     final token = authService.token;
 
-    final data = await api.get(
-      "/posts/${city != null && city.isNotEmpty ? '?city=$city' : ''}",
-      token: token,
-    );
+    // Build query string safely: support city and keyword query (q)
+    final params = <String>[];
+    if (city != null && city.isNotEmpty)
+      params.add('city=${Uri.encodeQueryComponent(city)}');
+    if (query != null && query.isNotEmpty)
+      params.add('q=${Uri.encodeQueryComponent(query)}');
+    final qs = params.isNotEmpty ? '?${params.join('&')}' : '';
+
+    final endpoint = "/posts/$qs";
+    debugPrint('PostsService.getPosts -> endpoint: $endpoint');
+
+    final data = await api.get(endpoint, token: token);
 
     // Diagnostic: print raw items and resolved image URLs to help debug missing images
     try {
@@ -33,7 +41,20 @@ class PostsService {
       }
     } catch (_) {}
 
-    return (data as List).map((json) => Posts.fromJson(json)).toList();
+    // Parse posts
+    final parsed = (data as List).map((json) => Posts.fromJson(json)).toList();
+
+    // Ensure client-side filtering by keyword is applied even if the server ignored the `q` param.
+    if (query != null && query.isNotEmpty) {
+      final q = query.toLowerCase();
+      return parsed
+          .where(
+            (p) => (p.title + ' ' + p.description).toLowerCase().contains(q),
+          )
+          .toList();
+    }
+
+    return parsed;
   }
 
   Future<Posts> getPost(int id) async {

@@ -39,8 +39,8 @@ class ApiFacade extends ChangeNotifier {
   String? get token => _authService.token;
 
   // Expondo posts via facade
-  Future<List<Posts>> getPosts({String? city}) =>
-      _postsService.getPosts(city: city);
+  Future<List<Posts>> getPosts({String? city, String? query}) =>
+      _postsService.getPosts(city: city, query: query);
 
   Future<bool> createPostScreen({
     required String text,
